@@ -1,20 +1,21 @@
 #pragma once
-#include <cstdint>
 
 using namespace std;
 
-set<uint64_t> RandomGen(int t, uint64_t limit);
-int bit_length(uint64_t num);
+set<int> RandomGen(int t, int limit);
+int bit_length(int num);
 int ModularArith(int a, int x, int p);
 int EulerFunc(int n);
 vector<int> Eratosthenes(int n);
 set<int> Divisors(int n);
 
-string Miller(uint64_t n, const set<int>& divs, int t);
-uint64_t MillerNumber(int bit_size, int t, const vector<int>& primes);
+string Miller(int n, const set<int>& divs, int t);
+pair<int, string> MillerNumber(int bit_size, int t, const vector<int>& primes);
 
-uint64_t randomR(uint64_t f);
+int randomR(int f);
 double PocklingtonErrProb(set<int>& divs);
-pair<string, double> Pocklington(uint64_t n, int t, int r, set<int> divs);
-uint64_t PocklingtonNumber(int bit_size, int t, const vector<int>& primes);
+pair<string, double> Pocklington(int n, int t, int r, set<int> divs);
+int PocklingtonNumber(int bit_size, int t, const vector<int>& primes);
 
+double GenerateXi();
+int StateStandardAlgo(int q, int t, double xi = GenerateXi());

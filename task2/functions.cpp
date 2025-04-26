@@ -9,11 +9,11 @@
 using namespace std;
 
 // Генерация случайных чисел
-set<uint64_t> RandomGen(int t, uint64_t limit) {
-    set<uint64_t> nums;
+set<int> RandomGen(int t, int limit) {
+    set<int> nums;
     random_device rd;
     mt19937 gen(rd());
-    uniform_int_distribution<uint64_t> dist(2, limit-1);
+    uniform_int_distribution<int> dist(2, limit-1);
 
     while (nums.size() < t)
         nums.insert(dist(gen));
@@ -22,7 +22,7 @@ set<uint64_t> RandomGen(int t, uint64_t limit) {
 }
 
 // Вывод количества бит в записи числа
-int bit_length(uint64_t num) {
+int bit_length(int num) {
     if (num == 0) return 1;
     int length = 0;
     while (num) {
@@ -33,8 +33,8 @@ int bit_length(uint64_t num) {
 }
 
 // Модулярная арифметика
-uint64_t ModularArith(uint64_t a, uint64_t x, uint64_t p) {
-    uint64_t res = 1;
+int ModularArith(int a, int x, int p) {
+    int res = 1;
     a %= p;
     while (x > 0) {
         if (x % 2 == 1)
@@ -91,17 +91,17 @@ set<int> Divisors(int n) {
 }
 
 // Тест Миллера
-string Miller(uint64_t n, const set<int>& divs, int t) {
+string Miller(int n, const set<int>& divs, int t) {
     // double err_probability = 1 - (double)EulerFunc(n-1)/(n-1);
-    if (n <= 1) return "n - составное";
-    if (n <= 3) return "n - простое число";
+    if (n <= 1) return "составное";
+    if (n <= 3) return "простое";
 
     // 1. Генерация t различных случайных чисел
     auto rand = RandomGen(t, n);
 
     // 2. Проверка для каждого случайного числа
     for (int a : rand) {
-        if (ModularArith(a, n-1, n) != 1) return "n - составное";
+        if (ModularArith(a, n-1, n) != 1) return "составное";
     }
 
     // 3.
@@ -114,51 +114,52 @@ string Miller(uint64_t n, const set<int>& divs, int t) {
             }
         }
         if (flag)
-            return "вероятно, n - составное число";
+            return "вероятно, составное";
     }
 
     // 4.
-    return "n - простое число";
+    return "простое";
 }
 
 
 
 // Построение числа с тестом Миллера
-uint64_t MillerNumber(int bit_size, int t, const vector<int>& primes) {
+pair<int, string> MillerNumber(int bit_size, int t, const vector<int>& primes) {
     int target_bit = bit_size - 1;
+    int target_max = (1 << target_bit) - 1;
 
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> dist(0, primes.size() - 1);
 
     while (true) {
-        uint64_t m {1};
+        int m {1};
         while (true) {
             const int q = primes[dist(gen)];
-            if (m > ((1ULL << target_bit) - 1) / q) break;
+            if (m > (target_max) / q) break;
             m *= q;
         }
 
-        uint64_t n = 2*m + 1;
+        int n = 2*m + 1;
+        if (bit_length(n) != bit_size) continue;
         auto n_minus_divs = Divisors(n-1);
 
         string result = Miller(n, n_minus_divs, t);
-        if (result != "n - составное")
-            return n;
+        return {n, result};
     }
 }
 
-uint64_t randomR(uint64_t f) {
+int randomR(int f) {
     random_device rd;
     mt19937_64 gen(rd());
 
     int f_bits = bit_length(f);
     int r_bits = f_bits - 1;
-    uint64_t r_min = 1ULL << (r_bits - 1);
-    uint64_t r_max = (1ULL << r_bits) - 1;
+    int r_min = 1 << (r_bits - 1);
+    int r_max = (1 << r_bits) - 1;
 
-    uniform_int_distribution<uint64_t> dist(r_min, r_max);
-    uint64_t r = dist(gen);
+    uniform_int_distribution<int> dist(r_min, r_max);
+    int r = dist(gen);
 
     if (r % 2 == 1)
         r -= 1;
@@ -175,13 +176,13 @@ uint64_t randomR(uint64_t f) {
 // }
 
 // Тест Поклингтона
-string Pocklington(uint64_t n, int t, int r, set<int> divs) {
+string Pocklington(int n, int t, int r, set<int> divs) {
     // 1. Генерация t различных случайных чисел
     auto rand = RandomGen(t, n);
 
     // 2. Проверка для каждого случайного числа
     for (int a : rand) {
-        if (ModularArith(a, n-1, n) != 1) return "n - составное";
+        if (ModularArith(a, n-1, n) != 1) return "составное";
     }
 
     // 3.
@@ -195,33 +196,34 @@ string Pocklington(uint64_t n, int t, int r, set<int> divs) {
             }
         }
         if (flag)
-            return "n - простое число";
+            return "простое";
     }
 
     // 4.
-    return "вероятно, n - составное число";
+    return "вероятно, составное";
 }
 
 
 // Построение числа с помощью теста Поклингтона
-uint64_t PocklingtonNumber(int bit_size, int t, const vector<int>& primes) {
+int PocklingtonNumber(int bit_size, int t, const vector<int>& primes) {
     int target_bit = bit_size / 2 + 1;
+    int target_max = 1 << target_bit;
 
     random_device rd;
     mt19937 gen(rd());
     uniform_int_distribution<> dist(0, primes.size() - 1);
 
     while (true) {
-        uint64_t f {1};
+        int f {1};
         while (true) {
             const int q = primes[dist(gen)];
-            if (f > (1ULL << target_bit) / q) break;
+            if (f > (target_max) / q) break;
             f *= q;
         }
         if (bit_length(f) != target_bit) continue;
 
-        uint64_t r = randomR(f);
-        uint64_t n = r * f + 1;
+        int r = randomR(f);
+        int n = r * f + 1;
         auto f_divs = Divisors(f);
 
         auto result = Pocklington(n, t, r, f_divs);
@@ -231,31 +233,37 @@ uint64_t PocklingtonNumber(int bit_size, int t, const vector<int>& primes) {
 }
 
 
+// Генерация вещественное числа в (0, 1)
+double GenerateXi() {
+    random_device rd;
+    minstd_rand rnd(rd());
+    uniform_real_distribution<double> xi(0., 1.);
+    return xi(rnd);
+}
 
+// ГОСТ: Переход от меньшего простого к большему
+int StateStandardAlgo(int q, int t, double xi = GenerateXi()) {
+    int u {};
 
+    while (true) {
+        // 1. Вычисление n
+        double n_double = pow(2, t-1) / q + (pow(2, t-1) * xi) / q;
+        int n = static_cast<int>(round(n_double));
+        if (n % 2 == 1) n++;
 
+        while (true) {
+            // 2. Создание кандидата в простые числа
+            int p = (n + u)*q + 1;
 
+            // 3. Проверка на размерность
+            if (p > (1 << t)) break;
 
-// pair<uint64_t, uint64_t> f(const vector<int>& primes, int bit_size) {
-//     int target_bit = bit_size - 1;
-//
-//     random_device rd;
-//     mt19937 gen(rd());
-//     uniform_int_distribution<> dist(0, primes.size() - 1);
-//
-//     while (true) {
-//         uint64_t m {1};
-//         while (true) {
-//             const int q = primes[dist(gen)];
-//             if (m > ((1LL << target_bit) - 1) / q) break;
-//             m *= q;
-//         }
-//
-//         if (bit_length(m) == target_bit) {
-//             uint64_t n = 2*m + 1;
-//             return {n, m};
-//         }
-//     }
-//
-// }
-
+            // 4. Финальная проверка по условиям
+            if ( ModularArith(2, p-1, p) == 1 && ModularArith(2, n+u, p) != 1) {
+                return p;
+            }
+            // 5. В случае неудачи
+            u = u + 2;
+        }
+    }
+}
