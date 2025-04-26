@@ -247,16 +247,18 @@ int StateStandardAlgo(int q, int t, double xi = GenerateXi()) {
 
     while (true) {
         // 1. Вычисление n
-        double n_double = pow(2, t-1) / q + (pow(2, t-1) * xi) / q;
-        int n = static_cast<int>(round(n_double));
+        double n_double = (pow(2, t-1) / q) + (pow(2, t-1) * xi) / q;
+        int n = static_cast<int>(ceil(n_double));
         if (n % 2 == 1) n++;
+        cout << "1) " << n << endl;
 
         while (true) {
             // 2. Создание кандидата в простые числа
             int p = (n + u)*q + 1;
+            cout << "2) " << p << endl;
 
             // 3. Проверка на размерность
-            if (p > (1 << t)) break;
+            if (p > pow(2, t)) break;
 
             // 4. Финальная проверка по условиям
             if ( ModularArith(2, p-1, p) == 1 && ModularArith(2, n+u, p) != 1) {
